@@ -1,0 +1,16 @@
+{
+  "name": "chrome-ext-framework",
+  "version": "1.0.0",
+  "description": "A framework to build Chrome Extensions easily",
+  "main": "bin/cli.js",
+  "type": "module",
+  "bin": {
+    "create-ext": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["chrome-extension", "framework", "vite"],
+  "author": "",
+  "license": "ISC"
+}
