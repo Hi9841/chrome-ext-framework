@@ -1,16 +1,29 @@
 {
-  "name": "chrome-ext-framework",
+  "name": "easy-extension-cli",
   "version": "1.0.0",
-  "description": "A framework to build Chrome Extensions easily",
+  "description": "The easiest way to build modern Chrome Extensions with React, TypeScript, and Vite.",
   "main": "bin/cli.js",
   "type": "module",
   "bin": {
-    "create-ext": "./bin/cli.js"
+    "easy-extension": "./bin/cli.js"
   },
+  "files": [
+    "bin",
+    "template"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["chrome-extension", "framework", "vite"],
+  "keywords": [
+    "chrome-extension",
+    "react",
+    "vite",
+    "boilerplate",
+    "framework"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^11.1.1" 
+  }
 }

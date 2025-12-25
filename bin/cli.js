@@ -10,16 +10,16 @@ const __dirname = path.dirname(__filename);
 const sourceDir = path.resolve(__dirname, '../template');
 
 // 2. Get the project name from the command line argument
-// Example: "create-ext my-app" -> projectName will be "my-app"
-const projectName = process.argv[2] || 'my-chrome-extension';
+const projectName = process.argv[2] || 'my-easy-extension';
 const targetDir = path.join(process.cwd(), projectName);
 
 console.log("-------------------------------------------------");
-console.log(`🚀  Creating project in: ${projectName} ...`);
+console.log("🚀  Welcome to EasyExtension!  🚀");
+console.log("    Building your modern extension...");
 console.log("-------------------------------------------------");
 
 try {
-  // 3. Create the new project folder if it doesn't exist
+  // 3. Create the new project folder
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir);
   } else {
@@ -27,20 +27,28 @@ try {
     process.exit(1);
   }
 
-  // 4. Read files and copy them
-  const files = fs.readdirSync(sourceDir);
+  // 4. Read and copy files recursively
+  const copyRecursive = (src, dest) => {
+    const stats = fs.statSync(src);
+    if (stats.isDirectory()) {
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest);
+      fs.readdirSync(src).forEach(childItemName => {
+        copyRecursive(path.join(src, childItemName), path.join(dest, childItemName));
+      });
+    } else {
+      fs.copyFileSync(src, dest);
+    }
+  };
 
-  for (const file of files) {
-    const srcFile = path.join(sourceDir, file);
-    const destFile = path.join(targetDir, file);
-    
-    // Copy recursively
-    fs.cpSync(srcFile, destFile, { recursive: true });
-  }
+  copyRecursive(sourceDir, targetDir);
 
-  console.log("\n✅ Done! To get started:");
+  console.log(`\n✅ Created ${projectName} successfully!`);
+  console.log("-------------------------------------------------");
+  console.log("To get started:");
   console.log(`   cd ${projectName}`);
   console.log("   npm install");
+  console.log("   npm run dev");
+  console.log("-------------------------------------------------");
 
 } catch (error) {
   console.error("❌ Error:", error.message);
