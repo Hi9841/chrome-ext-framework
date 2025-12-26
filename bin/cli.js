@@ -1,55 +1,34 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// 1. Setup paths
+// 1. Get the current path of this specific file (cli.js)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const sourceDir = path.resolve(__dirname, '../template');
 
-// 2. Get the project name from the command line argument
-const projectName = process.argv[2] || 'my-easy-extension';
-const targetDir = path.join(process.cwd(), projectName);
+// 2. Define Source and Destination
+// We step back (..) from 'bin' to get to the root, then into 'template'
+const srcDir = path.join(__dirname, '..', 'template');
+const destDir = process.cwd(); // The folder where the user runs the command
 
-console.log("-------------------------------------------------");
-console.log("🚀  Welcome to EasyExtension!  🚀");
-console.log("    Building your modern extension...");
-console.log("-------------------------------------------------");
+console.log(`\n📦 Creating a new Chrome Extension in: ${destDir}...`);
 
+// 3. Check if template exists before copying
+if (!fs.existsSync(srcDir)) {
+  console.error(`❌ Error: Template folder not found at ${srcDir}`);
+  process.exit(1);
+}
+
+// 4. Copy the files
 try {
-  // 3. Create the new project folder
-  if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir);
-  } else {
-    console.error(`❌ Error: Folder "${projectName}" already exists.`);
-    process.exit(1);
-  }
-
-  // 4. Read and copy files recursively
-  const copyRecursive = (src, dest) => {
-    const stats = fs.statSync(src);
-    if (stats.isDirectory()) {
-      if (!fs.existsSync(dest)) fs.mkdirSync(dest);
-      fs.readdirSync(src).forEach(childItemName => {
-        copyRecursive(path.join(src, childItemName), path.join(dest, childItemName));
-      });
-    } else {
-      fs.copyFileSync(src, dest);
-    }
-  };
-
-  copyRecursive(sourceDir, targetDir);
-
-  console.log(`\n✅ Created ${projectName} successfully!`);
-  console.log("-------------------------------------------------");
-  console.log("To get started:");
-  console.log(`   cd ${projectName}`);
-  console.log("   npm install");
-  console.log("   npm run dev");
-  console.log("-------------------------------------------------");
-
-} catch (error) {
-  console.error("❌ Error:", error.message);
+  fs.copySync(srcDir, destDir, {
+    overwrite: false,
+    errorOnExist: true // Prevents overwriting user's existing files
+  });
+  console.log('✅ Done! Project created successfully.');
+  console.log('\nNow run:\n  npm install\n  npm run dev\n');
+} catch (err) {
+  console.error('❌ Error copying files:', err.message);
 }
