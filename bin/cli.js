@@ -1,63 +1,56 @@
 #!/usr/bin/env node
 
-import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-// 1. Get the current path of this specific file (cli.js)
+// 1. Setup Paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const srcDir = path.resolve(__dirname, '..', 'template');
 
-// 2. Define Source
-// We step back (..) from 'bin' to get to the root, then into 'template'
-const srcDir = path.join(__dirname, '..', 'template');
-
-// 3. Define Destination
-// Check if the user provided a project name (e.g., "create-extension my-app")
 const projectName = process.argv[2];
 const currentDir = process.cwd();
+const destDir = projectName ? path.join(currentDir, projectName) : currentDir;
 
-let destDir;
+console.log(`\n🚀 Creating Chrome Extension in: ${destDir}`);
 
-if (projectName) {
-  // If name provided, create that folder inside the current directory
-  destDir = path.join(currentDir, projectName);
-  console.log(`\n📦 Creating a new Chrome Extension in: ./${projectName}...`);
-  fs.ensureDirSync(destDir); // Ensure the folder exists
-} else {
-  // If no name, use the current folder
-  destDir = currentDir;
-  console.log(`\n📦 Creating a new Chrome Extension in current directory...`);
-}
-
-// 4. Check if template exists before copying
+// 2. Validate Template
 if (!fs.existsSync(srcDir)) {
-  console.error(`❌ Error: Template folder not found at ${srcDir}`);
+  console.error(`❌ Error: Template not found at ${srcDir}`);
   process.exit(1);
 }
 
-// 5. Copy the files
+// 3. Create Destination Directory
+if (!fs.existsSync(destDir)) {
+  fs.mkdirSync(destDir, { recursive: true });
+}
+
+// 4. Native Node.js Copy (Recursive)
 try {
-  fs.copySync(srcDir, destDir, {
-    overwrite: false,
-    errorOnExist: false, // Fixed: Allows writing to existing folder
-    filter: (src) => {
-      // Filter out node_modules or .git just in case they are in the template
-      return !src.includes('node_modules') && !src.includes('.git');
-    }
+  fs.cpSync(srcDir, destDir, { 
+    recursive: true, 
+    filter: (src) => !src.includes('node_modules') && !src.includes('.git')
   });
 
-  console.log('✅ Done! Project created successfully.');
-  
-  // Custom instructions depending on if they created a new folder or not
-  console.log('\nNow run:');
-  if (projectName) {
-    console.log(`  cd ${projectName}`);
+  // 5. Rename gitignore (if it exists)
+  const gitignorePath = path.join(destDir, 'gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    fs.renameSync(gitignorePath, path.join(destDir, '.gitignore'));
   }
-  console.log('  npm install');
-  console.log('  npm run dev\n');
+
+  // 6. Update package.json name
+  const pkgPath = path.join(destDir, 'package.json');
+  if (fs.existsSync(pkgPath) && projectName) {
+    const pkgData = fs.readFileSync(pkgPath, 'utf-8');
+    const pkg = JSON.parse(pkgData);
+    pkg.name = projectName;
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+  }
+
+  console.log(`✅ Done! Project created.`);
+  console.log(`\nRun these commands:\n  cd ${projectName || '.'}\n  npm install\n  npm run dev\n`);
 
 } catch (err) {
-  console.error('❌ Error copying files:', err.message);
-  process.exit(1);
+  console.error(`❌ Copy failed: ${err.message}`);
 }

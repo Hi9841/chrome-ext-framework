@@ -1,6 +1,6 @@
 {
   "name": "easy-extension-hi",
-  "version": "1.1.1",
+  "version": "1.1.10",
   "description": "The easiest way to build modern Chrome Extensions with React, TypeScript, and Vite.",
   "main": "bin/cli.js",
   "type": "module",
